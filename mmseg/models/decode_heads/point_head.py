@@ -3,7 +3,10 @@
 import torch
 import torch.nn as nn
 from mmcv.cnn import ConvModule, normal_init
-from mmcv.ops import point_sample
+try:
+    from mmcv.ops import point_sample
+except ModuleNotFoundError:
+    point_sample = None
 
 from mmseg.models.builder import HEADS
 from mmseg.ops import resize
@@ -64,6 +67,8 @@ class PointHead(BaseCascadeDecodeHead):
                  norm_cfg=None,
                  act_cfg=dict(type='ReLU', inplace=False),
                  **kwargs):
+        if point_sample is None:
+            raise RuntimeError('Please install mmcv-full for point_sample ops')
         super(PointHead, self).__init__(
             input_transform='multiple_select',
             conv_cfg=conv_cfg,

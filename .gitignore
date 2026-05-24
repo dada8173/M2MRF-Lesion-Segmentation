@@ -115,3 +115,8 @@ work_dirs/
 
 # Pytorch
 *.pth
+
+# Local LA-M2MRF report assets
+NotoSansTC-Regular.otf
+實驗報告圖片/
+實驗報告圖片.tar.gz

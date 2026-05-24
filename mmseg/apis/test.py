@@ -7,7 +7,22 @@ import mmcv
 import torch
 import torch.distributed as dist
 from mmcv.image import tensor2imgs
+from mmcv.parallel import DataContainer
 from mmcv.runner import get_dist_info
+
+
+def _unwrap_test_data(data):
+    if isinstance(data, DataContainer):
+        return _unwrap_test_data(data.data[0])
+    if isinstance(data, torch.Tensor):
+        return data.cuda(non_blocking=True) if torch.cuda.is_available() else data
+    if isinstance(data, dict):
+        return {k: _unwrap_test_data(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [_unwrap_test_data(v) for v in data]
+    if isinstance(data, tuple):
+        return tuple(_unwrap_test_data(v) for v in data)
+    return data
 
 
 def single_gpu_test(model, data_loader, show=False, out_dir=None):
@@ -29,8 +44,9 @@ def single_gpu_test(model, data_loader, show=False, out_dir=None):
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):
+        model_data = _unwrap_test_data(data)
         with torch.no_grad():
-            result = model(return_loss=False, **data)
+            result = model(return_loss=False, **model_data)
         if isinstance(result, list):
             results.extend(result)
         else:
@@ -61,7 +77,7 @@ def single_gpu_test(model, data_loader, show=False, out_dir=None):
                     show=show,
                     out_file=out_file)
 
-        batch_size = data['img'][0].size(0)
+        batch_size = model_data['img'][0].size(0)
         for _ in range(batch_size):
             prog_bar.update()
     return results
@@ -94,15 +110,16 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):
+        model_data = _unwrap_test_data(data)
         with torch.no_grad():
-            result = model(return_loss=False, rescale=True, **data)
+            result = model(return_loss=False, rescale=True, **model_data)
         if isinstance(result, list):
             results.extend(result)
         else:
             results.append(result)
 
         if rank == 0:
-            batch_size = data['img'][0].size(0)
+            batch_size = model_data['img'][0].size(0)
             for _ in range(batch_size * world_size):
                 prog_bar.update()
 

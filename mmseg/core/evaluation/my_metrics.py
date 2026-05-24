@@ -37,10 +37,10 @@ def softmax_metrics(results, gt_seg_maps, num_classes):
     num_imgs = len(results)
     assert len(gt_seg_maps) == num_imgs
 
-    total_p = np.zeros((num_classes,), dtype=np.float)
-    total_tp = np.zeros((num_classes,), dtype=np.float)
-    total_fn = np.zeros((num_classes,), dtype=np.float)
-    maupr = np.zeros((num_classes,), dtype=np.float)
+    total_p = np.zeros((num_classes,), dtype=float)
+    total_tp = np.zeros((num_classes,), dtype=float)
+    total_fn = np.zeros((num_classes,), dtype=float)
+    maupr = np.zeros((num_classes,), dtype=float)
 
     for i in range(num_imgs):
         if isinstance(results[i], tuple):
@@ -61,9 +61,9 @@ def softmax_metrics(results, gt_seg_maps, num_classes):
 def sigmoid_confused_matrix(pred_logit, raw_label, num_classes, thresh):
     assert pred_logit.shape[0] == num_classes - 1
 
-    class_p = np.zeros((num_classes,), dtype=np.float)
-    class_tp = np.zeros((num_classes,), dtype=np.float)
-    class_fn = np.zeros((num_classes,), dtype=np.float)
+    class_p = np.zeros((num_classes,), dtype=float)
+    class_tp = np.zeros((num_classes,), dtype=float)
+    class_fn = np.zeros((num_classes,), dtype=float)
 
     for i in range(1, num_classes):
         pred = pred_logit[i - 1] > thresh
@@ -91,9 +91,9 @@ def sigmoid_metrics(results, gt_seg_maps, num_classes, compute_aupr=False):
     total_fn_list = []
 
     for thresh in threshs:
-        total_p = np.zeros((num_classes,), dtype=np.float)
-        total_tp = np.zeros((num_classes,), dtype=np.float)
-        total_fn = np.zeros((num_classes,), dtype=np.float)
+        total_p = np.zeros((num_classes,), dtype=float)
+        total_tp = np.zeros((num_classes,), dtype=float)
+        total_fn = np.zeros((num_classes,), dtype=float)
 
         for i in range(num_imgs):
             if isinstance(results[i], tuple):
@@ -118,7 +118,7 @@ def sigmoid_metrics(results, gt_seg_maps, num_classes, compute_aupr=False):
     total_tp = total_tp_list[index]
     total_fn = total_fn_list[index]
 
-    maupr = np.zeros((num_classes,), dtype=np.float)
+    maupr = np.zeros((num_classes,), dtype=float)
     total_p_list = np.stack(total_p_list)
     total_tp_list = np.stack(total_tp_list)
     total_fn_list = np.stack(total_fn_list)

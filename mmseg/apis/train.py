@@ -65,8 +65,13 @@ def train_segmentor(model,
             broadcast_buffers=False,
             find_unused_parameters=find_unused_parameters)
     else:
-        model = MMDataParallel(
-            model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+        # Modern PyTorch single-GPU execution is simpler and avoids old
+        # scatter semantics in legacy MMDataParallel.
+        if len(cfg.gpu_ids) == 1:
+            model = model.cuda(cfg.gpu_ids[0])
+        else:
+            model = MMDataParallel(
+                model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
