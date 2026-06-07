@@ -26,8 +26,8 @@ wheels/
 MANIFEST
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -70,7 +70,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
 # pyenv
 .python-version
@@ -81,20 +81,29 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments and secrets
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+secrets.*
+credentials.*
 
-# Spyder project settings
+# IDE settings
+.vscode/
+.idea/
 .spyderproject
 .spyproject
-
-# Rope project settings
 .ropeproject
 
 # mkdocs documentation
@@ -103,15 +112,25 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-data
-.vscode
-.idea
-
-# custom
+# Data, checkpoints, and experiment outputs
+/data/
+data/
+datasets/
+checkpoints/
+work_dirs/
+runs/
+outputs/
+wandb/
+tensorboard/
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.h5
 *.pkl
 *.pkl.json
 *.log.json
-work_dirs/
 
-# Pytorch
-*.pth
+# Local OS files
+.DS_Store
+Thumbs.db
