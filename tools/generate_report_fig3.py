@@ -65,6 +65,25 @@ DISPLAY_COLORS = {
 DEFAULT_CASES = ["IDRiD_60", "IDRiD_68"]
 DISPLAY_HEIGHT = 320
 
+FIG3_TEXT = {
+    "zh": {
+        "figure_title": "不同方法於眼底病灶分割結果之視覺化比較",
+        "legend_ex": "EX (硬性滲出物)",
+        "legend_he": "HE (出血)",
+        "legend_se": "SE (軟性滲出物)",
+        "legend_ma": "MA (微血管瘤)",
+        "output_name": "圖3_不同方法視覺化比較_排版.png",
+    },
+    "en": {
+        "figure_title": "Qualitative Comparison of Retinal Lesion Segmentation Results Across Methods",
+        "legend_ex": "EX (Hard Exudates)",
+        "legend_he": "HE (Hemorrhages)",
+        "legend_se": "SE (Soft Exudates)",
+        "legend_ma": "MA (Microaneurysms)",
+        "output_name": "Figure_3_Qualitative_Comparison.png",
+    },
+}
+
 EXPERIMENTS = [
     {
         "title": "M2MRF-C / Control",
@@ -108,6 +127,12 @@ def parse_args() -> argparse.Namespace:
         "--device",
         default="cuda:0" if torch.cuda.is_available() else "cpu",
         help="Torch device used for inference.",
+    )
+    parser.add_argument(
+        "--language",
+        choices=sorted(FIG3_TEXT.keys()),
+        default="zh",
+        help="Output language for the figure title and legend labels.",
     )
     return parser.parse_args()
 
@@ -266,10 +291,15 @@ def create_fig3(
     output_dir: str | Path = DEFAULT_OUTPUT_DIR,
     case_ids: list[str] | None = None,
     device: str | None = None,
+    language: str = "zh",
 ) -> Path:
     configure_fonts()
     output_dir = Path(output_dir).expanduser().resolve()
     os.makedirs(output_dir, exist_ok=True)
+
+    if language not in FIG3_TEXT:
+        raise ValueError(f"Unsupported language: {language}")
+    text = FIG3_TEXT[language]
 
     case_ids = case_ids or DEFAULT_CASES
     device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -310,10 +340,10 @@ def create_fig3(
             ax.set_yticks([])
 
     legend_handles = [
-        mpatches.Patch(color="yellow", label="EX (硬性滲出物)"),
-        mpatches.Patch(color="red", label="HE (出血)"),
-        mpatches.Patch(color="blue", label="SE (軟性滲出物)"),
-        mpatches.Patch(color="lime", label="MA (微血管瘤)"),
+        mpatches.Patch(color="yellow", label=text["legend_ex"]),
+        mpatches.Patch(color="red", label=text["legend_he"]),
+        mpatches.Patch(color="blue", label=text["legend_se"]),
+        mpatches.Patch(color="lime", label=text["legend_ma"]),
     ]
     fig.legend(
         handles=legend_handles,
@@ -323,10 +353,10 @@ def create_fig3(
         bbox_to_anchor=(0.5, 0.02),
     )
 
-    plt.suptitle("不同方法於眼底病灶分割結果之視覺化比較", fontsize=20, y=0.98)
+    plt.suptitle(text["figure_title"], fontsize=20, y=0.98)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 
-    output_path = output_dir / "圖3_不同方法視覺化比較_排版.png"
+    output_path = output_dir / text["output_name"]
     plt.savefig(output_path, dpi=300, facecolor="white")
     plt.close(fig)
     return output_path
@@ -338,6 +368,7 @@ def main() -> None:
         output_dir=args.output_dir,
         case_ids=args.cases,
         device=args.device,
+        language=args.language,
     )
     print(f"Saved Figure 3 to: {output_path}")
 

@@ -76,6 +76,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional case ids passed through to Figure 3 generation.",
     )
+    parser.add_argument(
+        "--fig3-language",
+        choices=["zh", "en"],
+        default="zh",
+        help="Language used for Figure 3 title and legend labels.",
+    )
     return parser.parse_args()
 
 
@@ -295,7 +301,11 @@ def main() -> None:
     if args.include_fig3:
         from generate_report_fig3 import create_fig3
 
-        fig3_path = create_fig3(output_dir=output_dir, case_ids=args.fig3_cases)
+        fig3_path = create_fig3(
+            output_dir=output_dir,
+            case_ids=args.fig3_cases,
+            language=args.fig3_language,
+        )
         print(f"Saved Figure 3 to: {fig3_path}")
 
 
