@@ -1,0 +1,14 @@
+# Repository owner review is required for important files.
+# Enable "Require review from Code Owners" in branch protection / rulesets.
+
+* @dada8173
+
+# Keep project governance and automation changes owner-reviewed.
+.github/ @dada8173
+SECURITY.md @dada8173
+LICENSE @dada8173
+README.md @dada8173
+requirements*.txt @dada8173
+setup.py @dada8173
+configs/ @dada8173
+tools/ @dada8173
