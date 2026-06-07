@@ -60,6 +60,26 @@ def parse_args():
     return args
 
 
+def check_dataset_roots(cfg):
+    datasets = []
+    for split_name in ['train', 'val', 'test']:
+        if split_name in cfg.data:
+            datasets.append(cfg.data[split_name])
+
+    checked_roots = set()
+    for dataset_cfg in datasets:
+        data_root = dataset_cfg.get('data_root', None)
+        if data_root is None or data_root in checked_roots:
+            continue
+        checked_roots.add(data_root)
+        if osp.isdir(data_root):
+            continue
+        if dataset_cfg.get('type', None) == 'LesionDataset' and osp.normpath(data_root) == osp.normpath('../data/IDRID'):
+            raise FileNotFoundError(
+                'IDRiD data not found at ../data/IDRID. Please follow docs/DATASET_SETUP_IDRID.md.')
+        raise FileNotFoundError(f'Dataset data_root not found at {data_root}.')
+
+
 def main():
     args = parse_args()
 
@@ -127,6 +147,7 @@ def main():
     meta['seed'] = args.seed
     meta['exp_name'] = osp.basename(args.config)
 
+    check_dataset_roots(cfg)
     model = build_segmentor(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 

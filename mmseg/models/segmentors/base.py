@@ -8,6 +8,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+from mmcv.parallel import DataContainer
 from mmcv.runner import auto_fp16
 
 
@@ -123,6 +124,20 @@ class BaseSegmentor(nn.Module):
         else:
             return self.forward_test(img, img_metas, **kwargs)
 
+    def _unwrap_data_batch(self, data):
+        if isinstance(data, DataContainer):
+            data = data.data[0]
+            return self._unwrap_data_batch(data)
+        if isinstance(data, torch.Tensor):
+            return data.cuda(non_blocking=True) if torch.cuda.is_available() else data
+        if isinstance(data, dict):
+            return {k: self._unwrap_data_batch(v) for k, v in data.items()}
+        if isinstance(data, list):
+            return [self._unwrap_data_batch(v) for v in data]
+        if isinstance(data, tuple):
+            return tuple(self._unwrap_data_batch(v) for v in data)
+        return data
+
     def train_step(self, data_batch, optimizer, **kwargs):
         """The iteration step during training.
 
@@ -149,13 +164,14 @@ class BaseSegmentor(nn.Module):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
+        data_batch = self._unwrap_data_batch(data_batch)
         losses = self(**data_batch)
         loss, log_vars = self._parse_losses(losses)
 
         outputs = dict(
             loss=loss,
             log_vars=log_vars,
-            num_samples=len(data_batch['img'].data))
+            num_samples=len(data_batch['img']))
 
         return outputs
 
@@ -166,6 +182,7 @@ class BaseSegmentor(nn.Module):
         during val epochs. Note that the evaluation after training epochs is
         not implemented with this method, but an evaluation hook.
         """
+        data_batch = self._unwrap_data_batch(data_batch)
         output = self(**data_batch, **kwargs)
         return output
 

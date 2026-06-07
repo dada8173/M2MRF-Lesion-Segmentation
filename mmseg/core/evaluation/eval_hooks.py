@@ -43,6 +43,9 @@ class EvalHook(Hook):
         """Call evaluate function of dataset."""
         eval_res = self.dataloader.dataset.evaluate(
             results, logger=runner.logger, **self.eval_kwargs)
+        # Keep older eval hook output compatible with newer MMCV logger hooks.
+        runner.log_buffer.output.setdefault('data_time', 0)
+        runner.log_buffer.output.setdefault('time', 0)
         for name, val in eval_res.items():
             runner.log_buffer.output[name] = val
         runner.log_buffer.ready = True
